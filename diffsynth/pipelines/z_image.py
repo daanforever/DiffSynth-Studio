@@ -577,6 +577,32 @@ def model_fn_z_image_turbo(
     use_gradient_checkpointing_offload=False,
     **kwargs,
 ):
+    is_batch = (
+        isinstance(latents, torch.Tensor)
+        and latents.dim() == 4
+        and latents.shape[0] > 1
+        and isinstance(prompt_embeds, list)
+        and len(prompt_embeds) == latents.shape[0]
+        and control_context is None
+    )
+    if is_batch:
+        B = latents.shape[0]
+        timestep = 1000 - timestep
+        all_image = [rearrange(latents[b : b + 1], "1 C H W -> C 1 H W") for b in range(B)]
+        all_cap_feats = [prompt_embeds[b] for b in range(B)]
+        out_list = dit.forward(
+            all_image,
+            timestep,
+            all_cap_feats,
+            patch_size=2,
+            f_patch_size=1,
+            use_gradient_checkpointing=use_gradient_checkpointing,
+            use_gradient_checkpointing_offload=use_gradient_checkpointing_offload,
+        )
+        x = torch.stack([out_list[b].squeeze(1) for b in range(B)], dim=0)
+        x = -x
+        return x
+
     while isinstance(prompt_embeds, list):
         prompt_embeds = prompt_embeds[0]
     while isinstance(latents, list):
