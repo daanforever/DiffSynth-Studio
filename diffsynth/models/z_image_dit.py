@@ -1046,15 +1046,12 @@ class ZImageDiT(nn.Module):
                 siglip_noise_mask,
             ) = self.patchify_and_embed_omni(x, cap_feats, siglip_feats, patch_size, f_patch_size, image_noise_mask)
         else:
-            (
-                x,
-                cap_feats,
-                x_size,
-                x_pos_ids,
-                cap_pos_ids,
-                x_pad_mask,
-                cap_pad_mask,
-            ) = self.patchify_and_embed(x, cap_feats, patch_size, f_patch_size)
+            x, cap_feats, patch_metadata = self.patchify_and_embed(x, cap_feats, patch_size, f_patch_size)
+            x_size = patch_metadata["x_size"]
+            x_pos_ids = patch_metadata["x_pos_ids"]
+            cap_pos_ids = patch_metadata["cap_pos_ids"]
+            x_pad_mask = patch_metadata["x_pad_mask"]
+            cap_pad_mask = patch_metadata["cap_pad_mask"]
             x_pos_offsets = x_noise_mask = cap_noise_mask = siglip_noise_mask = None
 
         # x embed & refine
