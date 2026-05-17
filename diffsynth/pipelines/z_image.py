@@ -587,7 +587,7 @@ def model_fn_z_image_turbo(
     )
     if is_batch:
         B = latents.shape[0]
-        timestep = 1000 - timestep
+        timestep = (1000 - timestep) / 1000.0
         all_image = [rearrange(latents[b : b + 1], "1 C H W -> C 1 H W") for b in range(B)]
         all_cap_feats = [prompt_embeds[b] for b in range(B)]
         out_list = dit.forward(
